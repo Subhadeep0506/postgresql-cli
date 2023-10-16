@@ -1,0 +1,1 @@
+Custom Typer+Rich CLI for writing SQL Queries using PostgreSQL.
