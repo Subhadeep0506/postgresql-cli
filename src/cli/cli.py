@@ -1,28 +1,31 @@
 from psycopg2.errors import *
 
 
-class Cli:
-    def __init__(self, connection) -> None:
+class QueryHandler:
+    def __init__(self, connection, config) -> None:
         self.connection = connection
+        self.config = config
 
     def execute_query(self, query: str):
         try:
-            if self._verify_query(query=query):
-                cursor = self.connection.cursor()
-                cursor.execute(query)
-                rows = cursor.fetchall()
-                columns = [column.name for column in cursor.description]
-                print("\t".join(columns))
-                for row in rows:
-                    print(" ".join([str(item) for item in row]))
-                cursor.close()
-            else:
-                pass
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            columns = [column.name for column in cursor.description]
+            cursor.close()
+            return columns, rows
+
         except (Exception, DatabaseError) as error:
+            cursor.close()
             print(error)
 
-    def _verify_query(self, query: str) -> bool:
-        if query.strip().endswith(";"):
-            return True
-        else:
-            return True
+    def list_databases(self):
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("""SELECT datname FROM pg_catalog.pg_database""")
+            tables = list(cursor.fetchall())
+            cursor.close()
+            return tables
+        except (Exception, DatabaseError) as error:
+            cursor.close()
+            print(error)

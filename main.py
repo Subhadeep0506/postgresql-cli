@@ -15,11 +15,11 @@ cli = Cli(connection=connection)
 
 print("Welcome to PostgreSQL CLI. Enter '\q' to quit the CLI.")
 query = """"""
-query = input("postgres $ ")
+query = input("\npostgres $ ")
 
 while query != "\q":
     cli.execute_query(query=query)
-    query = input("postgres $ ")
+    query = input("\npostgres $ ")
 
 
 connector.close_connection(connection=connection)
