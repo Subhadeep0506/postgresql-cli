@@ -1,6 +1,7 @@
 import yaml
 import pandas as pd
 import gradio as gr
+from src.cli.cli import QueryException
 from src.operators import Operator
 from src.css import CSS
 
@@ -12,6 +13,7 @@ databases_choices = operator.query_handler.list_databases()
 
 
 def change_database(database):
+    print("refresh connection", database)
     operator.refresh_connection(database=database)
 
 
@@ -23,7 +25,7 @@ def execute_query(query):
             columns, rows = operator.query_handler.execute_query(query=query)
             data = pd.DataFrame(rows, columns=columns)
             return data
-    except Exception as error:
+    except QueryException as error:
         raise gr.Error(f"An error occured: {error}")
 
 
@@ -32,8 +34,8 @@ with gr.Blocks(css=CSS) as demo:
     gr.Markdown("")
     with gr.Row():
         with gr.Column(scale=2):
-            databases = gr.Dropdown(
-                value=None,
+            databases = gr.Radio(
+                value=databases_choices[0],
                 label="Select Database",
                 choices=databases_choices,
                 type="value",
@@ -44,6 +46,7 @@ with gr.Blocks(css=CSS) as demo:
                 label="🗒️ Query Editor",
                 interactive=True,
                 placeholder="Enter query here...",
+                elem_id="query-editor",
             )
             run_query = gr.Button(
                 value="▶️ Run Query",
