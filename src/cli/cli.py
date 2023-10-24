@@ -11,8 +11,8 @@ class QueryHandler:
         self.config = config
 
     def execute_query(self, query: str):
+        cursor = self.connection.cursor()
         try:
-            cursor = self.connection.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
             columns = [column.name for column in cursor.description]
@@ -20,19 +20,42 @@ class QueryHandler:
             return columns, rows
 
         except (Exception, DatabaseError) as error:
+            cursor.execute("ROLLBACK")
             cursor.close()
-            print(error)
-            raise QueryException
+            raise QueryException(f"An error occured: {error}")
 
     def list_databases(self):
+        cursor = self.connection.cursor()
         try:
-            cursor = self.connection.cursor()
             cursor.execute("""SELECT datname FROM pg_catalog.pg_database""")
+            databases = cursor.fetchall()
+            databases = [
+                database[0]
+                for database in databases
+                if database[0] not in ["postgres", "template0", "template1"]
+            ]
+            cursor.close()
+            return databases
+        except (Exception, DatabaseError) as error:
+            cursor.close()
+            print(error)
+
+    def list_tables(self):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                ORDER BY table_name;
+                """
+            )
             tables = cursor.fetchall()
             tables = [
-                table[0]
-                for table in tables
-                if table[0] not in ["postgres", "template0", "template1"]
+                database[0]
+                for database in tables
+                if database[0] not in ["postgres", "template0", "template1"]
             ]
             cursor.close()
             return tables

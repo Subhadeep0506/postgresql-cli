@@ -15,7 +15,6 @@ class Operator:
 
     def refresh_connection(self, database):
         self.config["default"]["database"] = database
-        print(self.config)
         self.connection = self.connector.init_connection(config=self.config)
         self.query_handler = QueryHandler(
             connection=self.connection, config=self.config
